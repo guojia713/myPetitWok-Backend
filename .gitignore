@@ -1,0 +1,24 @@
+# Compiled output
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# macOS
+.DS_Store
+src/.DS_Store
+
+# Spring Boot
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
+
+# Environment / secrets
+*.env
+application-local.properties
