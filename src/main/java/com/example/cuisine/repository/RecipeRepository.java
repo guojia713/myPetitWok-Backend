@@ -41,8 +41,8 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     @Query("""
         SELECT r FROM Recipe r
         WHERE r.published = true
-          AND (:cuisineType IS NULL OR LOWER(r.cuisineType) = LOWER(:cuisineType))
-          AND (:difficulty IS NULL OR LOWER(r.difficulty) = LOWER(:difficulty))
+          AND (:cuisineType IS NULL OR CAST(r.cuisineType AS string) = :cuisineType)
+          AND (:difficulty IS NULL OR CAST(r.difficulty AS string) = :difficulty)
           AND (:maxSpice IS NULL OR r.spiceLevel <= :maxSpice)
         """)
     Page<Recipe> findWithFilters(
