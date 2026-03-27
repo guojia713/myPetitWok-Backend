@@ -34,8 +34,8 @@ public class RecipeService {
     // ── Public: list with filters ─────────────────────────────────────────────
 
     public RecipeDto.PagedResponse findAll(
-            String cuisineType, String difficulty, Integer maxSpice,
-            String search, Language lang, int page, int size,
+            String cuisineType, String difficulty, Integer maxSpice, Integer minSpice,
+            String category, String search, Language lang, int page, int size,
             Long currentUserId) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -43,11 +43,29 @@ public class RecipeService {
 
         if (search != null && !search.isBlank()) {
             recipePage = recipeRepository.searchByLanguage(search, lang, pageable);
-        } else if (cuisineType != null || difficulty != null || maxSpice != null) {
-            recipePage = recipeRepository.findWithFilters(cuisineType, difficulty, maxSpice, pageable);
+        } else if (cuisineType != null || difficulty != null || maxSpice != null || minSpice != null || category != null) {
+            recipePage = recipeRepository.findWithFilters(cuisineType, difficulty, maxSpice, minSpice, category, pageable);
         } else {
             recipePage = recipeRepository.findByPublishedTrue(pageable);
         }
+
+        RecipeDto.PagedResponse response = new RecipeDto.PagedResponse();
+        response.setContent(recipePage.getContent().stream()
+                .map(r -> toCard(r, lang, currentUserId))
+                .toList());
+        response.setPage(recipePage.getNumber());
+        response.setSize(recipePage.getSize());
+        response.setTotalElements(recipePage.getTotalElements());
+        response.setTotalPages(recipePage.getTotalPages());
+        response.setLast(recipePage.isLast());
+        return response;
+    }
+
+    // ── Public: favourites list ───────────────────────────────────────────────
+
+    public RecipeDto.PagedResponse findFavourites(Long userId, Language lang, int page, int size, Long currentUserId) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Recipe> recipePage = recipeRepository.findFavouritesByUserId(userId, pageable);
 
         RecipeDto.PagedResponse response = new RecipeDto.PagedResponse();
         response.setContent(recipePage.getContent().stream()
@@ -145,6 +163,10 @@ public class RecipeService {
         recipe.setCookTimeMinutes(req.getCookTimeMinutes());
         recipe.setServings(req.getServings());
         recipe.setSpiceLevel(req.getSpiceLevel() != null ? req.getSpiceLevel() : 0);
+        recipe.getCategories().clear();
+        if (req.getCategories() != null) {
+            recipe.getCategories().addAll(req.getCategories());
+        }
 
         // Translations
         if (req.getTranslations() != null) {
@@ -220,6 +242,7 @@ public class RecipeService {
         dto.setFavouriteCount(favouriteRepository.countByRecipeId(recipe.getId()));
         dto.setIsFavourite(currentUserId != null &&
                 favouriteRepository.existsByUserIdAndRecipeId(currentUserId, recipe.getId()));
+        dto.setCategories(recipe.getCategories());
         return dto;
     }
 
@@ -240,6 +263,7 @@ public class RecipeService {
         dto.setFavouriteCount(favouriteRepository.countByRecipeId(recipe.getId()));
         dto.setIsFavourite(currentUserId != null &&
                 favouriteRepository.existsByUserIdAndRecipeId(currentUserId, recipe.getId()));
+        dto.setCategories(recipe.getCategories());
 
         // Ingredients
         dto.setIngredients(recipe.getRecipeIngredients().stream()

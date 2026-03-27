@@ -37,19 +37,28 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             @Param("lang") Language lang,
             Pageable pageable);
 
-    // Filter by cuisine + difficulty combined
+    // Filter by cuisine, difficulty, spice, and/or category
     @Query("""
-        SELECT r FROM Recipe r
+        SELECT DISTINCT r FROM Recipe r
+        LEFT JOIN r.categories c
         WHERE r.published = true
           AND (:cuisineType IS NULL OR CAST(r.cuisineType AS string) = :cuisineType)
           AND (:difficulty IS NULL OR CAST(r.difficulty AS string) = :difficulty)
           AND (:maxSpice IS NULL OR r.spiceLevel <= :maxSpice)
+          AND (:minSpice IS NULL OR r.spiceLevel >= :minSpice)
+          AND (:category IS NULL OR c = :category)
         """)
     Page<Recipe> findWithFilters(
             @Param("cuisineType") String cuisineType,
             @Param("difficulty") String difficulty,
             @Param("maxSpice") Integer maxSpice,
+            @Param("minSpice") Integer minSpice,
+            @Param("category") String category,
             Pageable pageable);
+
+    // Find all recipes favourited by a user
+    @Query("SELECT r FROM Recipe r JOIN r.favourites f WHERE f.user.id = :userId AND r.published = true")
+    Page<Recipe> findFavouritesByUserId(@Param("userId") Long userId, Pageable pageable);
 
     // Fetch recipe with ingredients eagerly (translations loaded lazily)
     @Query("""

@@ -30,7 +30,9 @@ public class RecipeController {
      *   lang        = EN | FR | ZH_CN  (default EN)
      *   cuisineType = CHINESE | JAPANESE | KOREAN | THAI | VIETNAMESE
      *   difficulty  = BEGINNER | INTERMEDIATE | ADVANCED
-     *   maxSpice    = 0-5
+     *   maxSpice    = 0-5  (recipes with spiceLevel <= maxSpice)
+     *   minSpice    = 0-5  (recipes with spiceLevel >= minSpice)
+     *   category    = SIMPLE | ...
      *   search      = full-text search in recipe names/descriptions
      *   page        = 0-based page number (default 0)
      *   size        = page size (default 12)
@@ -42,6 +44,8 @@ public class RecipeController {
             @RequestParam(required = false) String cuisineType,
             @RequestParam(required = false) String difficulty,
             @RequestParam(required = false) Integer maxSpice,
+            @RequestParam(required = false) Integer minSpice,
+            @RequestParam(required = false) String category,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
@@ -50,7 +54,7 @@ public class RecipeController {
         Long currentUserId = SecurityUtils.getCurrentUserId();
 
         return ResponseEntity.ok(recipeService.findAll(
-                cuisineType, difficulty, maxSpice, search,
+                cuisineType, difficulty, maxSpice, minSpice, category, search,
                 language, page, size, currentUserId));
     }
 

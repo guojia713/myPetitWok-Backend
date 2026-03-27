@@ -1,6 +1,9 @@
 package com.example.cuisine.controller;
 
+import com.example.cuisine.dto.RecipeDto;
+import com.example.cuisine.entity.Language;
 import com.example.cuisine.service.FavouriteService;
+import com.example.cuisine.service.RecipeService;
 import com.example.cuisine.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +18,7 @@ import java.util.Map;
 public class FavouriteController {
 
     private final FavouriteService favouriteService;
+    private final RecipeService recipeService;
 
     /**
      * GET /api/v1/favourites
@@ -24,6 +28,25 @@ public class FavouriteController {
     public ResponseEntity<List<Long>> getMyFavourites() {
         Long userId = SecurityUtils.getRequiredCurrentUserId();
         return ResponseEntity.ok(favouriteService.getFavouriteRecipeIds(userId));
+    }
+
+    /**
+     * GET /api/v1/favourites/recipes
+     * Returns paginated full recipe cards for the logged-in user's favourites.
+     */
+    @GetMapping("/recipes")
+    public ResponseEntity<RecipeDto.PagedResponse> getFavouriteRecipes(
+            @RequestParam(defaultValue = "EN") String lang,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Long userId = SecurityUtils.getRequiredCurrentUserId();
+        Language language;
+        try {
+            language = Language.valueOf(lang.toUpperCase().replace("-", "_"));
+        } catch (IllegalArgumentException e) {
+            language = Language.EN;
+        }
+        return ResponseEntity.ok(recipeService.findFavourites(userId, language, page, size, userId));
     }
 
     /**

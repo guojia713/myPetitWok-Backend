@@ -25,6 +25,7 @@ public class RecipeDto {
         public String imageUrl;
         public Boolean isFavourite;
         public Long favouriteCount;
+        public List<String> categories;
     }
 
     // ── Full detail view ──────────────────────────────────────────────────────
@@ -43,6 +44,7 @@ public class RecipeDto {
         public String imageUrl;
         public Boolean isFavourite;
         public Long favouriteCount;
+        public List<String> categories;
         public List<IngredientDto.RecipeIngredientResponse> ingredients;
         public List<StepResponse> steps;
     }
@@ -66,6 +68,7 @@ public class RecipeDto {
         @NotNull  public Integer cookTimeMinutes;
         @NotNull  public Integer servings;
         public Integer spiceLevel = 0;
+        public List<String> categories;
         // key = "EN", "FR", "ZH_CN"
         @NotNull public Map<String, TranslationInput> translations;
         public List<RecipeIngredientInput> ingredients;

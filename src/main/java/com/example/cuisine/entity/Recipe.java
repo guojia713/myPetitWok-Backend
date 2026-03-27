@@ -73,6 +73,11 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Favourite> favourites = new ArrayList<>();
 
+    @ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
+    @CollectionTable(name = "recipe_categories", joinColumns = @JoinColumn(name = "recipe_id"))
+    @Column(name = "category")
+    private List<String> categories = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
