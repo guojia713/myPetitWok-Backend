@@ -25,12 +25,11 @@ public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
     // Find by category (SAUCE, SPICE, etc.)
     List<Ingredient> findByCategoryIgnoreCase(String category);
 
-    // Fetch with all translations eagerly
+    // Fetch ingredient with its translations and substitute (substitute translations load lazily in @Transactional service)
     @Query("""
         SELECT DISTINCT i FROM Ingredient i
         LEFT JOIN FETCH i.translations
-        LEFT JOIN FETCH i.substitute s
-        LEFT JOIN FETCH s.translations
+        LEFT JOIN FETCH i.substitute
         WHERE i.id = :id
         """)
     Optional<Ingredient> findByIdWithDetails(@Param("id") Long id);

@@ -60,3 +60,5 @@ Flyway runs automatically on startup. Migration files are in `src/main/resources
 - **Recipes start as drafts** (`published=false`) and must be explicitly published via `PUT /api/v1/recipes/{id}/publish`
 - **`spiceLevel`** is an integer 0–5 stored on `Recipe`, included in both `CardResponse` and `DetailResponse`
 - The `AppConfig` bean uses `@Autowired @Lazy` for `UserRepository` to break a circular dependency with `entityManagerFactory`
+
+- Remember to write and update unit test when somethings changes
