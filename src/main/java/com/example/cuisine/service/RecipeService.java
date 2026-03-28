@@ -8,6 +8,7 @@ import com.example.cuisine.repository.FavouriteRepository;
 import com.example.cuisine.repository.IngredientRepository;
 import com.example.cuisine.repository.RecipeRepository;
 import com.example.cuisine.repository.RecipeStepRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,7 @@ public class RecipeService {
     private final IngredientRepository ingredientRepository;
     private final FavouriteRepository favouriteRepository;
     private final RecipeStepRepository recipeStepRepository;
+    private final EntityManager entityManager;
 
     // ── Public: list with filters ─────────────────────────────────────────────
 
@@ -87,6 +89,14 @@ public class RecipeService {
         return toDetail(recipe, lang, currentUserId);
     }
 
+    // ── Admin: get single recipe (including drafts) ───────────────────────────
+
+    public RecipeDto.DetailResponse findByIdAdmin(Long id, Language lang) {
+        Recipe recipe = recipeRepository.findByIdWithDetailsAdmin(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Recipe not found"));
+        return toDetail(recipe, lang, null);
+    }
+
     // ── Admin: create recipe ──────────────────────────────────────────────────
 
     @Transactional
@@ -109,6 +119,8 @@ public class RecipeService {
         recipe.getTranslations().clear();
         recipe.getSteps().clear();
         recipe.getRecipeIngredients().clear();
+        // Flush DELETEs before INSERTs to avoid unique constraint violations
+        entityManager.flush();
 
         applyCreateRequest(recipe, request);
         return toDetail(recipeRepository.save(recipe), Language.EN, null);
@@ -243,7 +255,26 @@ public class RecipeService {
         dto.setIsFavourite(currentUserId != null &&
                 favouriteRepository.existsByUserIdAndRecipeId(currentUserId, recipe.getId()));
         dto.setCategories(recipe.getCategories());
+        dto.setPublished(recipe.getPublished());
         return dto;
+    }
+
+    // ── Admin: list all recipes (including drafts) ────────────────────────────
+
+    public RecipeDto.PagedResponse findAllAdmin(Language lang, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Recipe> recipePage = recipeRepository.findAll(pageable);
+
+        RecipeDto.PagedResponse response = new RecipeDto.PagedResponse();
+        response.setContent(recipePage.getContent().stream()
+                .map(r -> toCard(r, lang, null))
+                .toList());
+        response.setPage(recipePage.getNumber());
+        response.setSize(recipePage.getSize());
+        response.setTotalElements(recipePage.getTotalElements());
+        response.setTotalPages(recipePage.getTotalPages());
+        response.setLast(recipePage.isLast());
+        return response;
     }
 
     private RecipeDto.DetailResponse toDetail(Recipe recipe, Language lang, Long currentUserId) {

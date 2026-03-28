@@ -30,7 +30,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setDisplayName(request.getDisplayName());
         user.setPreferredLanguage(request.getPreferredLanguage());
-        user.setRole("ROLE_USER");
+        user.setRole(userRepository.count() == 0 ? "ROLE_ADMIN" : "ROLE_USER");
 
         userRepository.save(user);
         return buildAuthResponse(user);

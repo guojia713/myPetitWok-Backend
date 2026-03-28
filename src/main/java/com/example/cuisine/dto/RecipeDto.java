@@ -26,6 +26,7 @@ public class RecipeDto {
         public Boolean isFavourite;
         public Long favouriteCount;
         public List<String> categories;
+        public Boolean published;
     }
 
     // ── Full detail view ──────────────────────────────────────────────────────

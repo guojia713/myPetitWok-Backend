@@ -74,6 +74,33 @@ public class RecipeController {
     }
 
     /**
+     * GET /api/v1/recipes/admin
+     * Admin only — list all recipes including drafts.
+     */
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RecipeDto.PagedResponse> getAllAdmin(
+            @RequestParam(defaultValue = "EN") String lang,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Language language = parseLanguage(lang);
+        return ResponseEntity.ok(recipeService.findAllAdmin(language, page, size));
+    }
+
+    /**
+     * GET /api/v1/recipes/admin/{id}
+     * Admin only — get full detail of any recipe, including drafts.
+     */
+    @GetMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RecipeDto.DetailResponse> getByIdAdmin(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "EN") String lang) {
+        Language language = parseLanguage(lang);
+        return ResponseEntity.ok(recipeService.findByIdAdmin(id, language));
+    }
+
+    /**
      * POST /api/v1/recipes
      * Admin only — create a new recipe (starts as draft/unpublished).
      */
